@@ -3,7 +3,9 @@ import random
 from heapq import heappush, heappop
 import heapq
 from nodes import Node
-from algo_Astar import * 
+from algo_Astar import a_star
+from algo_Astar import manhattan_distance
+from algo_Astar import get_neighbors
 # Initialisation de Pygame
 pygame.init()
 
