@@ -10,6 +10,7 @@
 ---
 # Outils ⚒️
   * Langage python : pygame 🎮
+  * Algorithme pathfinding : A*
 ---
 # Description
  > Pour jouer dans le jeu "puzzle", l'utilisateur doit choisir sur la fenetre principale entre les options "1.Jouer 3x3", "2.Jouer 4x4", et puis entrer la valeur de k correspondant a la valeur de nombre de deplacement de > > tuile pour faire le "swap". Apres avoir presser sur le bouton "Entree" du clavier, il va choisir soit le mode manuel ou le mode automatique; avec le mode manuel, c'est l'utilisateur qui deplace les tuiles pour essayer de > gagner. Mais avec le mode automatique, c'est l'ordinateur qui fait les deplacements pour arranger les tuiles dans la bonne ordre. Lorsque les tuiles du puzzle sont bien ranges, la partie est terminee.         
