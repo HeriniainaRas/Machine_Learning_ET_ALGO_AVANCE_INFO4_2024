@@ -12,4 +12,4 @@
 
   RANDIMBINIRINA RAKOTOMANANA Yusha Andry Ny Aina, IGGLIA 4, N 45
 
-  ##TOKY :smile
+  ##TOKY 😄
