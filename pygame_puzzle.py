@@ -78,8 +78,7 @@ def move_tile(grid, row, col):
         move_count += 1
         if k_swap == 0:
             swap_mode = False
-        # Le premier déplacement effectué par le joueur est numéroté 𝑑 = 1. Si 𝑑 𝑚𝑜𝑑 𝑘 = 0, le 𝑑-ième déplacement est un
-swap
+        # Le premier déplacement effectué par le joueur est numéroté 𝑑 = 1. Si 𝑑 𝑚𝑜𝑑 𝑘 = 0, le 𝑑-ième déplacement est unswap
         elif move_count % k_swap == 0:  
             swap_mode = True  # Activer le mode swap
 
