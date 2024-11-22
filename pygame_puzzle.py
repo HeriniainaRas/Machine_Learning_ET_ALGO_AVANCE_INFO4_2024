@@ -1,17 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Fri Nov 22 10:53:03 2024
-
-@author: user
-"""
-
-# -*- coding: utf-8 -*-
-"""
-Created on Fri Nov 22 10:31:49 2024
-
-@author: user
-"""
-
 import pygame
 import random
 
@@ -32,6 +18,7 @@ GRAY = (200, 200, 200)
 GREEN = (0, 255, 0)
 RED = (255, 0, 0)
 BLUE = (0, 0, 255)
+DARK_GREEN = (0, 200, 0)  # Couleur pour le survol du bouton
 
 # Variables globales
 tile_size = WIDTH // 3  # Taille initiale pour 3x3
@@ -42,12 +29,13 @@ swap_mode = False
 
 # Initialisation de la grille
 def create_grid(rows, cols):
-    numbers = list(range(1, rows * cols)) + [""]
+    numbers = list(range(1, rows * cols)) + [""]  # Création de la grille
     random.shuffle(numbers)
     grid = [numbers[i * cols:(i + 1) * cols] for i in range(rows)]
     return grid
 
 grid = []
+initial_grid = []  # Variable pour stocker l'état initial de la grille
 
 # Dessin de la grille
 def draw_grid(grid, selected_tiles=None):
@@ -78,8 +66,7 @@ def move_tile(grid, row, col):
         move_count += 1
         if k_swap == 0:
             swap_mode = False
-        # Le premier déplacement effectué par le joueur est numéroté 𝑑 = 1. Si 𝑑 𝑚𝑜𝑑 𝑘 = 0, le 𝑑-ième déplacement est unswap
-        elif move_count % k_swap == 0:  
+        elif move_count % k_swap == 0:
             swap_mode = True  # Activer le mode swap
 
 # Mode Swap
@@ -164,12 +151,23 @@ def show_start_menu():
                 elif event.unicode.isdigit():
                     input_text += event.unicode
 
+# Fonction pour réinitialiser le jeu avec l'état initial
+def reset_game():
+    global grid, swap_mode, move_count
+    grid = [row[:] for row in initial_grid]  # Réinitialiser la grille à son état initial
+    swap_mode = False  # Réinitialiser le mode swap
+    move_count = 0     # Réinitialiser le compteur de mouvements
+
 # Boucle principale
 def main_game():
-    global swap_mode, move_count, grid
+    global swap_mode, move_count, grid, initial_grid
     grid = create_grid(rows, cols)
+    initial_grid = [row[:] for row in grid]  # Sauvegarder l'état initial de la grille
     running = True
     selected_tiles = []
+
+    # Ajouter un bouton Reset
+    reset_button = pygame.Rect(WIDTH // 4, HEIGHT - 100, WIDTH // 2, 50)  # Placer en bas de la fenêtre
 
     while running:
         for event in pygame.event.get():
@@ -181,18 +179,21 @@ def main_game():
                 row, col = y // tile_size, x // tile_size
 
                 if swap_mode:
-                    # Mode swap actif : Sélection de deux tuiles
                     selected_tiles.append((row, col))
                     if len(selected_tiles) == 2:
                         swap_tiles(grid, selected_tiles[0], selected_tiles[1])
                         swap_mode = False
                         selected_tiles = []
                 else:
-                    # Mode normal : déplacement
                     move_tile(grid, row, col)
 
+                # Vérifier si le bouton reset a été cliqué
+                if reset_button.collidepoint(x, y):
+                    reset_game()
+
+        # Dessiner la grille et le bouton Reset
         draw_grid(grid, selected_tiles)
-        
+
         # Afficher le mode actuel
         if swap_mode:
             swap_text = font.render("Swap Mode Active!", True, RED)
@@ -201,6 +202,14 @@ def main_game():
         if check_win(grid):
             win_text = font.render("You Win!", True, GREEN)
             screen.blit(win_text, (WIDTH // 2 - 100, HEIGHT // 2))
+
+        # Dessiner le bouton Reset avec effet de survol
+        if reset_button.collidepoint(pygame.mouse.get_pos()):
+            pygame.draw.rect(screen, DARK_GREEN, reset_button)  # Survol
+        else:
+            pygame.draw.rect(screen, GREEN, reset_button)  # Normal
+        reset_text = font.render("Reset", True, WHITE)
+        screen.blit(reset_text, (WIDTH // 2 - 50, HEIGHT - 85))
 
         pygame.display.flip()
 
