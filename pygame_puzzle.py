@@ -1,19 +1,8 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Fri Nov 22 10:53:03 2024
-
-@author: user
-"""
-
-# -*- coding: utf-8 -*-
-"""
-Created on Fri Nov 22 10:31:49 2024
-
-@author: user
-"""
-
 import pygame
 import random
+from heapq import heappush, heappop
+import heapq
+from nodes import Node
 
 # Initialisation de Pygame
 pygame.init()
@@ -78,8 +67,7 @@ def move_tile(grid, row, col):
         move_count += 1
         if k_swap == 0:
             swap_mode = False
-        # Le premier déplacement effectué par le joueur est numéroté 𝑑 = 1. Si 𝑑 𝑚𝑜𝑑 𝑘 = 0, le 𝑑-ième déplacement est un
-swap
+        # Le premier déplacement effectué par le joueur est numéroté 𝑑 = 1. Si 𝑑 𝑚𝑜𝑑 𝑘 = 0, le 𝑑-ième déplacement est un swap
         elif move_count % k_swap == 0:  
             swap_mode = True  # Activer le mode swap
 
@@ -165,10 +153,211 @@ def show_start_menu():
                 elif event.unicode.isdigit():
                     input_text += event.unicode
 
+
+# Calcul de la distance de Manhattan entre la position actuelle et la position cible
+# def manhattan_distance(grid, goal):
+#     print(goal)
+#     dist = 0
+#     for i in range(rows):
+#         for j in range(cols):
+#             if grid[i][j] != "":
+#                 goal_pos = goal.index(grid[i][j])
+#                 goal_row, goal_col = goal_pos // cols, goal_pos % cols
+#                 dist += abs(i - goal_row) + abs(j - goal_col)
+#     return dist
+
+def manhattan_distance(grid, goal):
+    dist = 0
+    # Placer chaque élément de goal dans un dictionnaire avec ses coordonnées
+    goal_positions = {}
+    for i in range(len(goal)):
+        for j in range(len(goal[i])):
+            goal_positions[goal[i][j]] = (i, j)
+    
+    # Calculer la distance de Manhattan pour chaque élément
+    for i in range(len(grid)):
+        for j in range(len(grid[i])):
+            if grid[i][j] != '':  # Ignorer la case vide
+                goal_row, goal_col = goal_positions[grid[i][j]]
+                dist += abs(i - goal_row) + abs(j - goal_col)
+    
+    return dist
+
+def a_star(initial_grid):
+    # Create the initial node from the starting grid
+    start_node = Node(initial_grid)
+    open_list = []  # Priority queue for A* (min-heap)
+    heapq.heappush(open_list, start_node)
+    closed_list = set()  # Set of visited nodes
+
+    while open_list:
+        current_node = heapq.heappop(open_list)
+
+        # Check if the goal is reached
+        if current_node.manhattan_distance() == 0:
+            return reconstruct_path(current_node)
+
+        closed_list.add(tuple(map(tuple, current_node.grid)))  # Mark this state as visited
+
+        # Get possible moves (neighbors)
+        neighbors = get_neighbors(current_node)
+        for neighbor in neighbors:
+            if tuple(map(tuple, neighbor.grid)) not in closed_list:
+                heapq.heappush(open_list, neighbor)
+
+    return None  # No solution found
+
+def get_neighbors(node):
+    neighbors = []
+    empty_row, empty_col = node.empty_pos
+    directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]  # Up, Down, Left, Right
+
+    for direction in directions:
+        new_row, new_col = empty_row + direction[0], empty_col + direction[1]
+        if 0 <= new_row < len(node.grid) and 0 <= new_col < len(node.grid[0]):
+            # Swap the empty space with the adjacent tile
+            new_grid = [row.copy() for row in node.grid]
+            new_grid[empty_row][empty_col], new_grid[new_row][new_col] = new_grid[new_row][new_col], new_grid[empty_row][empty_col]
+            neighbor = Node(new_grid, parent=node, move=node.move + 1)
+            neighbors.append(neighbor)
+
+    return neighbors
+
+def reconstruct_path(node):
+    path = []
+    while node:
+        path.append(node.grid)
+        node = node.parent
+    return path[::-1]  # Return the path from start to goal
+
+
+# Résolution avec l'algorithme A*
+# def solve_puzzle(grid):
+    
+#     solution = a_star(grid)
+#     print(solution)
+#     if solution:
+#         for step in solution:
+#             for row in step:
+#                 print(row)
+#             print('---')
+#     else:
+#         print("Aucune solution trouvée.")
+
+def solve_puzzle(grid, screen):
+    solution = a_star(grid)
+    if solution:
+        for step in solution:
+            # Effacer l'écran et redessiner le puzzle à chaque étape
+            draw_grid(step)
+            pygame.display.update()
+            pygame.time.delay(500)  # Attendre 500 ms pour visualiser chaque étape
+    else:
+        print("Aucune solution trouvée.")
+
+# Choix du mode de jeu
+def choose_game_mode():
+    mode_selected = None
+    menu_running = True
+
+    button_manual = pygame.Rect(WIDTH // 2 - 150, 200, 300, 50)
+    button_auto = pygame.Rect(WIDTH // 2 - 150, 300, 300, 50)
+
+    while menu_running:
+        screen.fill(WHITE)
+
+        # Afficher le titre
+        title = font.render("Choisissez le mode de jeu", True, BLACK)
+        screen.blit(title, (WIDTH // 2 - 250, 100))
+
+        # Dessiner les boutons
+        pygame.draw.rect(screen, GREEN if mode_selected == "manual" else GRAY, button_manual)
+        pygame.draw.rect(screen, GREEN if mode_selected == "auto" else GRAY, button_auto)
+
+        # Ajouter les textes sur les boutons
+        option_manual = small_font.render("Mode Manuel", True, BLACK)
+        option_auto = small_font.render("Mode Automatique", True, BLACK)
+        screen.blit(option_manual, (WIDTH // 2 - 100, 215))
+        screen.blit(option_auto, (WIDTH // 2 - 100, 315))
+
+        # Instructions pour démarrer
+        start_game_text = font.render("Appuyez sur Entrée pour continuer", True, BLACK)
+        screen.blit(start_game_text, (WIDTH // 2 - 250, 400))
+
+        pygame.display.flip()
+
+        # Gestion des événements
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                quit()
+
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                mouse_pos = pygame.mouse.get_pos()
+
+                if button_manual.collidepoint(mouse_pos):
+                    mode_selected = "manual"
+
+                if button_auto.collidepoint(mouse_pos):
+                    mode_selected = "auto"
+
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN and mode_selected:
+                return mode_selected
+
+
 # Boucle principale
+# def main_game():
+#     global swap_mode, move_count, grid
+#     grid = create_grid(rows, cols)
+
+#     game_mode = choose_game_mode()
+
+#     if game_mode == "auto":
+#         solve_puzzle(grid)  # Appelle l'algorithme A* pour résoudre le puzzle
+#         return  # Quitter après la résolution
+
+#     running = True
+#     selected_tiles = []
+
+#     while running:
+#         for event in pygame.event.get():
+#             if event.type == pygame.QUIT:
+#                 running = False
+
+#             if event.type == pygame.MOUSEBUTTONDOWN:
+#                 x, y = pygame.mouse.get_pos()
+#                 row, col = y // tile_size, x // tile_size
+
+#                 if swap_mode:
+#                     selected_tiles.append((row, col))
+#                     if len(selected_tiles) == 2:
+#                         swap_tiles(grid, selected_tiles[0], selected_tiles[1])
+#                         swap_mode = False
+#                         selected_tiles = []
+#                 else:
+#                     move_tile(grid, row, col)
+
+#         draw_grid(grid, selected_tiles)
+
+#         if swap_mode:
+#             swap_text = font.render("Swap Mode Active!", True, RED)
+#             screen.blit(swap_text, (10, HEIGHT - 50))
+
+#         if check_win(grid):
+#             win_text = font.render("You Win!", True, GREEN)
+#             screen.blit(win_text, (WIDTH // 2 - 100, HEIGHT // 2))
+
+#         pygame.display.flip()
 def main_game():
     global swap_mode, move_count, grid
     grid = create_grid(rows, cols)
+
+    game_mode = choose_game_mode()
+
+    if game_mode == "auto":
+        solve_puzzle(grid, screen)  # Passer l'écran à la fonction de résolution
+        return  # Quitter après la résolution
+
     running = True
     selected_tiles = []
 
@@ -182,28 +371,27 @@ def main_game():
                 row, col = y // tile_size, x // tile_size
 
                 if swap_mode:
-                    # Mode swap actif : Sélection de deux tuiles
                     selected_tiles.append((row, col))
                     if len(selected_tiles) == 2:
                         swap_tiles(grid, selected_tiles[0], selected_tiles[1])
                         swap_mode = False
                         selected_tiles = []
                 else:
-                    # Mode normal : déplacement
                     move_tile(grid, row, col)
 
         draw_grid(grid, selected_tiles)
-        
-        # Afficher le mode actuel
+
         if swap_mode:
             swap_text = font.render("Swap Mode Active!", True, RED)
             screen.blit(swap_text, (10, HEIGHT - 50))
-        
+
         if check_win(grid):
             win_text = font.render("You Win!", True, GREEN)
             screen.blit(win_text, (WIDTH // 2 - 100, HEIGHT // 2))
 
         pygame.display.flip()
+
+
 
 # Lancer le menu
 show_start_menu()
