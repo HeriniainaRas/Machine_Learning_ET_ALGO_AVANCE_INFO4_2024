@@ -110,9 +110,44 @@ def show_start_menu():
         # Champ pour entrer k
         prompt_k = font.render("Entrez la valeur de k :", True, BLACK)
         screen.blit(prompt_k, (WIDTH // 2 - 200, 400))
+
+        # Limiter l'entrée aux chiffres uniquement
         input_surface = font.render(input_text, True, BLUE)
         pygame.draw.rect(screen, GRAY, (WIDTH // 2 - 100, 450, 200, 50))
         screen.blit(input_surface, (WIDTH // 2 - 90, 460))
+
+        # Gestion des événements dans la boucle
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                quit()
+
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                mouse_pos = pygame.mouse.get_pos()
+
+                # Gérer le clic pour les boutons, par exemple les choix de puzzle
+                if button_3x3.collidepoint(mouse_pos):
+                    selected_size = 3
+                    rows, cols = 3, 3
+                    tile_size = WIDTH // 3
+
+                if button_4x4.collidepoint(mouse_pos):
+                    selected_size = 4
+                    rows, cols = 4, 4
+                    tile_size = WIDTH // 4
+
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_BACKSPACE:
+                    input_text = input_text[:-1]  # Effacer le dernier caractère
+
+                elif event.key == pygame.K_RETURN:
+                    if input_text.isdigit():  # Si l'entrée est un nombre valide
+                        k_swap = int(input_text)
+                        menu_running = False  # Passer à la phase suivante du jeu
+
+                elif event.unicode.isdigit():  # Accepter uniquement les chiffres
+                    input_text += event.unicode
+
 
         # Instructions pour démarrer
         start_game_text = font.render("Appuyez sur Entrée pour commencer", True, BLACK)
