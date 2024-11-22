@@ -1,4 +1,4 @@
-> Machine_Learning_INFO4_2024
+>Algo_avancee and Machine Learning INFO4 2024 **ISPM**
 # QUICKSILVER 🤖
 ## Membre du groupe :
 
