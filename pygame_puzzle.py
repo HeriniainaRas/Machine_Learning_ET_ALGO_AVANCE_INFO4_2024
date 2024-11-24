@@ -159,24 +159,64 @@ def show_start_menu():
 
 # Résolution avec l'algorithme A*
 def solve_puzzle(grid, screen):
-    solution = a_star(grid)
+    solution = a_star(grid, k_swap)
     if solution:
         for step in solution:
-            # Effacer l'écran et redessiner le puzzle à chaque étape
             draw_grid(step)
             pygame.display.update()
-            pygame.time.delay(500)  # Attendre 500 ms pour visualiser chaque étape
-
-        # # Afficher le message de victoire après la résolution
-        # win_text = font.render("You Win!", True, GREEN)
-        # screen.blit(win_text, (WIDTH // 2 - 100, HEIGHT // 2))
-        pygame.display.update()
-        pygame.time.delay(2000)  # Attendre 2 secondes pour afficher le message
+            pygame.time.delay(200)  # Réduit à 200ms pour une animation plus rapide
+        return True  # Indique que la solution a été trouvée
     else:
         print("Aucune solution trouvée.")
+        return False
 
 # Choix du mode de jeu
 def choose_game_mode():
+    mode_selected = None
+    menu_running = True
+
+    button_manual = pygame.Rect(WIDTH // 2 - 150, 200, 300, 50)
+    button_auto = pygame.Rect(WIDTH // 2 - 150, 300, 300, 50)
+
+    while menu_running:
+        screen.fill(WHITE)
+
+        # Afficher le titre
+        title = font.render("Choisissez le mode de jeu", True, BLACK)
+        screen.blit(title, (WIDTH // 2 - 250, 100))
+
+        # Dessiner les boutons
+        pygame.draw.rect(screen, GREEN if mode_selected == "manual" else GRAY, button_manual)
+        pygame.draw.rect(screen, GREEN if mode_selected == "auto" else GRAY, button_auto)
+
+        # Ajouter le texte pour les deux modes
+        option_manual = small_font.render("Mode Manuel", True, BLACK)
+        option_auto = small_font.render("Mode Automatique", True, BLACK)
+        screen.blit(option_manual, (WIDTH // 2 - 100, 215))
+        screen.blit(option_auto, (WIDTH // 2 - 100, 315))
+
+        # Instructions pour démarrer
+        start_game_text = font.render("Appuyez sur Entrée pour continuer", True, BLACK)
+        screen.blit(start_game_text, (WIDTH // 2 - 250, 400))
+
+        pygame.display.flip()
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                quit()
+
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                mouse_pos = pygame.mouse.get_pos()
+
+                if button_manual.collidepoint(mouse_pos):
+                    mode_selected = "manual"
+
+                if button_auto.collidepoint(mouse_pos):
+                    mode_selected = "auto"
+
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN and mode_selected:
+                return mode_selected
     mode_selected = None
     menu_running = True
 
@@ -233,23 +273,22 @@ def choose_game_mode():
 def main_game():
     global swap_mode, move_count, grid
     grid = create_grid(rows, cols)
-
     game_mode = choose_game_mode()
 
     if game_mode == "auto":
-        solve_puzzle(grid, screen)  # Passer l'écran à la fonction de résolution
-        running = False  # Empêche la fermeture immédiate
-    else:
-        running = True
+        if solve_puzzle(grid, screen):
+            return True  # Retourne immédiatement au menu après la résolution
+        return False
 
+    running = True
     selected_tiles = []
 
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                running = False
+                return False
 
-            if event.type == pygame.MOUSEBUTTONDOWN:
+            if event.type == pygame.MOUSEBUTTONDOWN and not check_win(grid):
                 x, y = pygame.mouse.get_pos()
                 row, col = y // tile_size, x // tile_size
 
@@ -269,14 +308,20 @@ def main_game():
             screen.blit(swap_text, (10, HEIGHT - 50))
 
         if check_win(grid):
-            win_text = font.render("You Win!", True, GREEN)
-            screen.blit(win_text, (WIDTH // 2 - 100, HEIGHT // 2))
+            return True  # Retourne immédiatement au menu quand le puzzle est résolu
 
         pygame.display.flip()
 
+def run_game():
+    running = True
+    while running:
+        show_start_menu()  # Afficher le menu de sélection de puzzle
+        restart = main_game()  # Lancer le jeu
+        if not restart:  # Si main_game retourne False, quitter le jeu
+            running = False
 
-# Lancer le menu
-show_start_menu()
-main_game()
-
-pygame.quit()
+if __name__ == "__main__":
+    run_game()
+    pygame.quit()
+    run_game()
+    pygame.quit()
