@@ -164,8 +164,14 @@ def solve_puzzle(grid, screen):
         for step in solution:
             draw_grid(step)
             pygame.display.update()
-            pygame.time.delay(200)  # Réduit à 200ms pour une animation plus rapide
-        return True  # Indique que la solution a été trouvée
+            pygame.time.delay(200)
+        
+        # Afficher le message "You Win!" à la fin
+        win_text = font.render("You Win!", True, GREEN)
+        screen.blit(win_text, (WIDTH // 2 - 100, HEIGHT // 2))
+        pygame.display.update()
+        pygame.time.delay(1000)  # Afficher le message pendant 1 seconde
+        return True
     else:
         print("Aucune solution trouvée.")
         return False
@@ -277,7 +283,7 @@ def main_game():
 
     if game_mode == "auto":
         if solve_puzzle(grid, screen):
-            return True  # Retourne immédiatement au menu après la résolution
+            return True
         return False
 
     running = True
@@ -308,16 +314,21 @@ def main_game():
             screen.blit(swap_text, (10, HEIGHT - 50))
 
         if check_win(grid):
-            return True  # Retourne immédiatement au menu quand le puzzle est résolu
+            # Afficher le message "You Win!" avant de retourner au menu
+            win_text = font.render("You Win!", True, GREEN)
+            screen.blit(win_text, (WIDTH // 2 - 100, HEIGHT // 2))
+            pygame.display.update()
+            pygame.time.delay(1000)  # Afficher le message pendant 1 seconde
+            return True
 
         pygame.display.flip()
 
 def run_game():
     running = True
     while running:
-        show_start_menu()  # Afficher le menu de sélection de puzzle
-        restart = main_game()  # Lancer le jeu
-        if not restart:  # Si main_game retourne False, quitter le jeu
+        show_start_menu()
+        restart = main_game()
+        if not restart:
             running = False
 
 if __name__ == "__main__":
