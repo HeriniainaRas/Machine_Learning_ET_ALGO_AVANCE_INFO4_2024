@@ -2,6 +2,10 @@ import pygame
 import random
 from heapq import heappush, heappop
 import heapq
+import time
+import csv
+from datetime import datetime
+import os
 from nodes import Node
 from algo_Astar import a_star
 from algo_Astar import manhattan_distance
@@ -159,6 +163,61 @@ def show_start_menu():
 
 # Résolution avec l'algorithme A*
 def solve_puzzle(grid, screen):
+    # Initialisation du chronomètre
+    start_time = time.time()
+    
+    # Tentative de résolution
+    solution = a_star(grid, k_swap)
+    
+    # Calcul du temps d'exécution
+    execution_time = time.time() - start_time
+    
+    # Préparation des données pour le CSV
+    current_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    success = solution is not None
+    nb_moves = len(solution) - 1 if solution else 0
+    
+    # Données à enregistrer
+    data = {
+        'date': current_date,
+        'taille_grille': f"{rows}x{cols}",
+        'k_swap': k_swap,
+        'temps_execution': round(execution_time, 3),
+        'nb_mouvements': nb_moves,
+        'succes': 'Oui' if success else 'Non'
+    }
+    
+    # Export vers CSV
+    csv_filename = 'puzzle_solutions.csv'
+    file_exists = os.path.isfile(csv_filename)
+    
+    with open(csv_filename, 'a', newline='', encoding='utf-8') as f:
+        writer = csv.DictWriter(f, fieldnames=data.keys())
+        if not file_exists:
+            writer.writeheader()
+        writer.writerow(data)
+    
+    # Affichage de la solution si elle existe
+    if solution:
+        for step in solution:
+            draw_grid(step)
+            pygame.display.update()
+            pygame.time.delay(200)
+        
+        # Afficher le message "You Win!"
+        win_text = font.render("You Win!", True, GREEN)
+        screen.blit(win_text, (WIDTH // 2 - 100, HEIGHT // 2))
+        
+        # Afficher les statistiques
+        stats_text = small_font.render(f"Temps: {round(execution_time, 2)}s | Mouvements: {nb_moves}", True, BLUE)
+        screen.blit(stats_text, (WIDTH // 2 - 150, HEIGHT // 2 + 50))
+        
+        pygame.display.update()
+        pygame.time.delay(2000)
+        return True
+    else:
+        print("Aucune solution trouvée.")
+        return False
     solution = a_star(grid, k_swap)
     if solution:
         for step in solution:
