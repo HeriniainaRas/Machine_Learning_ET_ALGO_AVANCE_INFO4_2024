@@ -2,20 +2,7 @@ from heapq import heappush, heappop
 import heapq
 from nodes import Node
 
-def manhattan_distance(grid, goal):
-    dist = 0
-    goal_positions = {}
-    for i in range(len(goal)):
-        for j in range(len(goal[i])):
-            goal_positions[goal[i][j]] = (i, j)
-    
-    for i in range(len(grid)):
-        for j in range(len(grid[i])):
-            if grid[i][j] != '':
-                goal_row, goal_col = goal_positions[grid[i][j]]
-                dist += abs(i - goal_row) + abs(j - goal_col)
-    
-    return dist
+from heuristic import manhattan_distance
 
 def get_possible_swaps(grid):
     swaps = []
@@ -49,7 +36,7 @@ def a_star(initial_grid, k=3):
         
         # Obtenir les voisins normaux
         neighbors = get_neighbors(current_node)
-        
+
         # Appliquer k-swap si nécessaire
         if k > 0 and current_node.move > 0 and current_node.move % k == 0:
             swap_neighbors = []
@@ -58,7 +45,7 @@ def a_star(initial_grid, k=3):
                 swap_node = Node(swap_grid, parent=current_node, move=current_node.move + 1)
                 swap_neighbors.append(swap_node)
             neighbors.extend(swap_neighbors)
-        
+
         for neighbor in neighbors:
             neighbor_state = tuple(map(tuple, neighbor.grid))
             if neighbor_state not in closed_list:

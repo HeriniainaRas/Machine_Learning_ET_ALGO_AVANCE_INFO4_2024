@@ -8,7 +8,7 @@ from datetime import datetime
 import os
 from nodes import Node
 from algo_Astar import a_star
-from algo_Astar import manhattan_distance
+from heuristic import *
 from algo_Astar import get_neighbors
 # Initialisation de Pygame
 pygame.init()
