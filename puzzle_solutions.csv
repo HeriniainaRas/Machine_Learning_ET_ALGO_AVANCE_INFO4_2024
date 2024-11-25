@@ -1,3 +1,5 @@
 date,taille_grille,k_swap,temps_execution,nb_mouvements,succes
 2024-11-24 22:57:11,3x3,5,0.042,17,Oui
 2024-11-24 22:58:08,3x3,10,0.048,20,Oui
+2024-11-25 10:08:01,4x4,1,0.073,17,Oui
+2024-11-25 10:08:20,3x3,10,0.04,21,Oui
